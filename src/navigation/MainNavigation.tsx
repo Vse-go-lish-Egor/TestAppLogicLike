@@ -14,7 +14,12 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const MainNavigation = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="CourseListScreen">
+      <Stack.Navigator
+        initialRouteName="CourseListScreen"
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
         <Stack.Screen name="CourseListScreen" component={CourseListScreen} />
         <Stack.Screen name="TopicsListScreen" component={TopicsListScreen} />
       </Stack.Navigator>
