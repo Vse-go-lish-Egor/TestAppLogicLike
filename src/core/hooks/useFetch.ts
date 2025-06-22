@@ -12,7 +12,6 @@ export const useFetch = <T,>(fetchFunction: () => Promise<T>) => {
     setStatus('loading');
     try {
       const result = await fetchFunction();
-      console.log('result', result);
       setData(result);
       setStatus('success');
     } catch (err) {

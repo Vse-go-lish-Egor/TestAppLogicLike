@@ -5,8 +5,11 @@ import CourseListScreen from '../screens/CourseListScreen';
 import TopicsListScreen from '../screens/TopicsListScreen';
 
 export type RootStackParamList = {
-  CourseListScreen: undefined;
-  TopicsListScreen: undefined;
+  CourseListScreen: { selectedTag: string};
+  TopicsListScreen: {
+    selectedTag: string;
+    allTags: string[];
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();

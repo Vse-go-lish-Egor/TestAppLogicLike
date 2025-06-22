@@ -1,5 +1,5 @@
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import React from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { fetchCourses } from '../core/api/courses';
 import { Courses } from '../core/types';
 import { useFetch } from '../core/hooks/useFetch';
@@ -7,19 +7,71 @@ import { colors } from '../core/colors/mainColors';
 import { Font } from '../components/Font';
 import DownPoiner from '../assets/svgs/down-poiner.svg';
 import CourseList from '../components/CourseList';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/MainNavigation';
 
-const CourseListScreen = () => {
-  const { data, error, status, isLoading } = useFetch<Courses[]>(fetchCourses);
+type Props = NativeStackScreenProps<RootStackParamList, 'CourseListScreen'>;
 
+const CourseListScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { data, error, status } = useFetch<Courses[]>(fetchCourses);
+  const [selectedTag, _] = React.useState<string>(
+    route.params?.selectedTag || 'all',
+  );
+  const [allTags, setAllTags] = React.useState<string[]>([]);
+
+  const getAllTags = useCallback(
+    (courses: Courses[]) =>
+      Array.from(
+        new Set(
+          courses
+            .flatMap(course => course.tags)
+            .filter((tag): tag is string => !!tag),
+        ),
+      ),
+    [],
+  );
+
+  const handleNavigate = useCallback(() => {
+    navigation.navigate('TopicsListScreen', {
+      selectedTag: selectedTag,
+      allTags: allTags,
+    });
+  }, [allTags, navigation, selectedTag]);
+
+  useEffect(() => {
+    setAllTags(getAllTags(data || []));
+  }, [data, getAllTags]);
+
+  const filtredData = useMemo(
+    () => data?.filter(item => item.tags?.includes(selectedTag)),
+    [data, selectedTag],
+  );
+
+  if (status === 'loading' || error) {
+    return (
+      <View style={styles.container}>
+        <Font.Weight800_12 color={colors.white}>
+          {error ? error : 'Загрузка...'}
+        </Font.Weight800_12>
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.button}>
-        <Font.Weight800_12 color={colors.white}>Все темы</Font.Weight800_12>
+      <TouchableOpacity style={styles.button} onPress={handleNavigate}>
+        <Font.Weight800_12 color={colors.white}>
+          {selectedTag === 'all' ? 'Все темы' : selectedTag}
+        </Font.Weight800_12>
         <View style={styles.circle}>
           <DownPoiner />
         </View>
       </TouchableOpacity>
-      {data && <CourseList data={data} onPress={() => {}} />}
+      {data && (
+        <CourseList
+          data={selectedTag === 'all' ? data : filtredData || []}
+          onPress={() => {}}
+        />
+      )}
     </View>
   );
 };
